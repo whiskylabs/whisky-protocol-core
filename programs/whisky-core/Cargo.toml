@@ -1,0 +1,23 @@
+[package]
+name = "whisky-core"
+version = "0.1.0"
+description = "Whisky Gaming Protocol - Decentralized Gaming on Solana"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "whisky_core"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.29.0"
+anchor-spl = "0.29.0"
+solana-program = "1.16.0"
+mpl-token-metadata = { version = "3.2.0", features = ["serde"] }
+sha2 = "0.10.0" 
