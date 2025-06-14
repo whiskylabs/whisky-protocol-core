@@ -22,6 +22,46 @@ pub enum WhiskyError {
     AlreadyInitialized,
     #[msg("Account not initialized")]
     NotInitialized,
+    #[msg("Invalid instruction")]
+    InvalidInstruction,
+    #[msg("Invalid mint")]
+    InvalidMint,
+    #[msg("Token transfer failed")]
+    TokenTransferFailed,
+    #[msg("Invalid signature")]
+    InvalidSignature,
+    #[msg("Calculation error")]
+    CalculationError,
+    #[msg("Account not initialized")]
+    AccountNotInitialized,
+    #[msg("Account already initialized")]
+    AccountAlreadyInitialized,
+    #[msg("Insufficient balance")]
+    InsufficientBalance,
+}
+
+#[error_code]
+pub enum WhiskyStateError {
+    #[msg("Pool creation not allowed")]
+    PoolCreationNotAllowed,
+    #[msg("Pool deposit not allowed")]
+    DepositNotAllowed,
+    #[msg("Pool withdrawal not allowed")]
+    WithdrawalNotAllowed,
+    #[msg("Playing not allowed")]
+    PlaysNotAllowed,
+    #[msg("Invalid fee configuration")]
+    InvalidFeeConfiguration,
+    #[msg("Feature disabled")]
+    FeatureDisabled,
+    #[msg("Configuration out of bounds")]
+    ConfigurationOutOfBounds,
+    #[msg("Invalid authority")]
+    InvalidAuthority,
+    #[msg("Protocol paused")]
+    ProtocolPaused,
+    #[msg("Invalid parameter")]
+    InvalidParameter,
 }
 
 #[error_code]
@@ -42,6 +82,16 @@ pub enum PlayerError {
     CannotClaim,
     #[msg("No winnings to claim")]
     NoWinningsToClaim,
+    #[msg("Player not initialized")]
+    PlayerNotInitialized,
+    #[msg("Player already initialized")]
+    PlayerAlreadyInitialized,
+    #[msg("Invalid player state")]
+    InvalidPlayerState,
+    #[msg("Anti-spam fee required")]
+    AntiSpamFeeRequired,
+    #[msg("Nonce mismatch")]
+    NonceMismatch,
 }
 
 #[error_code]
@@ -60,6 +110,52 @@ pub enum RngError {
     RngTimeout,
     #[msg("Invalid client seed")]
     InvalidClientSeed,
+    #[msg("Invalid RNG provider")]
+    InvalidRngProvider,
+    #[msg("Hash verification failed")]
+    HashVerificationFailed,
+    #[msg("Duplicate settlement")]
+    DuplicateSettlement,
+}
+
+#[error_code]
+pub enum GameError {
+    #[msg("Too few bet outcomes")]
+    TooFewOutcomes,
+    #[msg("Too many bet outcomes")]
+    TooManyOutcomes,
+    #[msg("Invalid bet weights")]
+    InvalidBetWeights,
+    #[msg("Wager amount too low")]
+    WagerTooLow,
+    #[msg("Invalid house edge")]
+    InvalidHouseEdge,
+    #[msg("Maximum payout exceeded")]
+    MaxPayoutExceeded,
+    #[msg("Invalid multiplier")]
+    InvalidMultiplier,
+    #[msg("Game not settled")]
+    GameNotSettled,
+    #[msg("Invalid bet configuration")]
+    InvalidBetConfiguration,
+    #[msg("Invalid bet parameters")]
+    InvalidBetParameters,
+    #[msg("House edge too high")]
+    HouseEdgeTooHigh,
+    #[msg("Wager too high")]
+    WagerTooHigh,
+    #[msg("Game not in correct state")]
+    InvalidGameState,
+    #[msg("Invalid game result")]
+    InvalidGameResult,
+    #[msg("RNG settlement failed")]
+    RngSettlementFailed,
+    #[msg("Creator fee too high")]
+    CreatorFeeTooHigh,
+    #[msg("Invalid jackpot configuration")]
+    InvalidJackpotConfiguration,
+    #[msg("Invalid metadata")]
+    InvalidMetadata,
 }
 
 #[error_code]
@@ -68,68 +164,24 @@ pub enum PoolError {
     PoolNotFound,
     #[msg("Insufficient pool liquidity")]
     InsufficientLiquidity,
-    #[msg("Pool is paused")]
-    PoolPaused,
     #[msg("Invalid pool authority")]
     InvalidPoolAuthority,
-    #[msg("Pool configuration error")]
-    PoolConfigError,
-    #[msg("Deposit limit exceeded")]
+    #[msg("Pool deposit limit exceeded")]
     DepositLimitExceeded,
-    #[msg("Withdrawal limit exceeded")]
-    WithdrawalLimitExceeded,
-    #[msg("Pool already exists")]
-    PoolAlreadyExists,
+    #[msg("Invalid withdrawal amount")]
+    InvalidWithdrawalAmount,
+    #[msg("Pool is paused")]
+    PoolPaused,
+    #[msg("Pool not initialized")]
+    PoolNotInitialized,
     #[msg("Invalid token mint")]
     InvalidTokenMint,
-    #[msg("Pool not whitelisted")]
-    NotWhitelisted,
-}
-
-#[error_code]
-pub enum GameError {
-    #[msg("Invalid bet configuration")]
-    InvalidBet,
-    #[msg("Bet weights must sum to positive value")]
-    InvalidBetWeights,
-    #[msg("Too many bet outcomes")]
-    TooManyOutcomes,
-    #[msg("Too few bet outcomes")]
-    TooFewOutcomes,
-    #[msg("Wager below minimum")]
-    WagerTooLow,
-    #[msg("Wager above maximum")]
-    WagerTooHigh,
-    #[msg("Invalid house edge")]
-    InvalidHouseEdge,
-    #[msg("Max payout exceeded")]
-    MaxPayoutExceeded,
-    #[msg("Invalid creator fee")]
-    InvalidCreatorFee,
-    #[msg("Invalid jackpot fee")]
-    InvalidJackpotFee,
-    #[msg("Game result timeout")]
-    GameTimeout,
-    #[msg("Invalid game metadata")]
-    InvalidMetadata,
-}
-
-#[error_code]
-pub enum WhiskyStateError {
-    #[msg("Pool creation not allowed")]
-    PoolCreationNotAllowed,
-    #[msg("Pool deposits not allowed")]
-    DepositNotAllowed,
-    #[msg("Pool withdrawals not allowed")]
-    WithdrawalNotAllowed,
-    #[msg("Playing not allowed")]
-    PlaysNotAllowed,
-    #[msg("Invalid fee configuration")]
-    InvalidFeeConfig,
-    #[msg("Protocol is paused")]
-    ProtocolPaused,
-    #[msg("Invalid authority")]
-    InvalidAuthority,
-    #[msg("Configuration locked")]
-    ConfigurationLocked,
+    #[msg("Invalid LP token calculation")]
+    InvalidLPTokenCalculation,
+    #[msg("Whitelist check failed")]
+    WhitelistCheckFailed,
+    #[msg("Custom fee out of bounds")]
+    CustomFeeOutOfBounds,
+    #[msg("Withdrawal limit exceeded")]
+    WithdrawalLimitExceeded,
 } 

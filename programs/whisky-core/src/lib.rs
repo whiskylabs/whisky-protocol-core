@@ -5,10 +5,9 @@ use anchor_spl::{
     token::{burn, mint_to, transfer, Burn, Mint, MintTo, Token, TokenAccount, Transfer},
 };
 use mpl_token_metadata::types::{DataV2, TokenStandard};
-use solana_program::hash::hash;
 use std::str::FromStr;
 
-declare_id!("Bk1qUqYaEfCyKWeke3VKDjmb2rtFM61QyPmroSFmv7uw");
+declare_id!("6R7S7r6KzU1A5YACXCaKuF6GcEcv5ZdXU4hh8vPozcw6");
 
 pub mod constants;
 pub mod errors;
@@ -18,6 +17,7 @@ pub mod utils;
 
 use crate::constants::*;
 use crate::errors::*;
+use crate::instructions::*;
 use crate::state::*;
 use crate::utils::*;
 
@@ -170,9 +170,10 @@ pub mod whisky_core {
             amount,
         )?;
 
+        let underlying_token_mint = ctx.accounts.underlying_token_mint.key();
         let pool_seeds = &[
             POOL_SEED,
-            ctx.accounts.underlying_token_mint.key().as_ref(),
+            underlying_token_mint.as_ref(),
             ctx.accounts.pool.pool_authority.as_ref(),
             &[ctx.accounts.pool.bump[0]],
         ];
@@ -225,9 +226,10 @@ pub mod whisky_core {
             amount,
         )?;
 
+        let underlying_token_mint = ctx.accounts.underlying_token_mint.key();
         let pool_seeds = &[
             POOL_SEED,
-            ctx.accounts.underlying_token_mint.key().as_ref(),
+            underlying_token_mint.as_ref(),
             ctx.accounts.pool.pool_authority.as_ref(),
             &[ctx.accounts.pool.bump[0]],
         ];
@@ -354,9 +356,10 @@ pub mod whisky_core {
         
         require!(game.status == GameStatus::Ready, PlayerError::NotReadyToPlay);
 
+        let user_key = ctx.accounts.user.key();
         let player_seeds = &[
             PLAYER_SEED,
-            ctx.accounts.user.key().as_ref(),
+            user_key.as_ref(),
             &[player.bump[0]],
         ];
 
