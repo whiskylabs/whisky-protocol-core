@@ -1,4 +1,4 @@
-# Whisky Gaming Protocol
+# Whisky Gaming Protocol [WORK IN PROGRESS]
 
 A comprehensive, production-ready decentralized gaming infrastructure built on Solana, providing provably fair randomness, liquidity pooling, and complete game state management for blockchain-based gaming applications.
 
