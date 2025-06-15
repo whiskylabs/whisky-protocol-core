@@ -4,11 +4,10 @@ members = [
     "programs/whisky-core"
 ]
 
+[workspace.dependencies]
+bs58 = "0.4.0"
+
 [profile.release]
 overflow-checks = true
-lto = "fat"
+lto = true
 codegen-units = 1
-
-[patch.crates-io]
-anchor-lang = { git = "https://github.com/coral-xyz/anchor", branch = "v0.29.0" }
-anchor-spl = { git = "https://github.com/coral-xyz/anchor", branch = "v0.29.0" } 
