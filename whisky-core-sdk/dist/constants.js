@@ -34,7 +34,7 @@ exports.DEFAULT_JACKPOT_PAYOUT_TO_WHISKY_BPS = 1000; // 10%
 exports.DEFAULT_BONUS_TO_JACKPOT_RATIO_BPS = 100; // 1%
 // Game Configuration
 exports.MIN_BET_LENGTH = 2;
-exports.MAX_BET_LENGTH = 20;
+exports.MAX_BET_LENGTH = 256;
 exports.MIN_BET_WEIGHT = 1;
 exports.MAX_BET_WEIGHT = 1000000;
 // Token Programs

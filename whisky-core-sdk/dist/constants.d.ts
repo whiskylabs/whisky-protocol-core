@@ -26,7 +26,7 @@ export declare const DEFAULT_JACKPOT_PAYOUT_TO_POOL_BPS = 1000;
 export declare const DEFAULT_JACKPOT_PAYOUT_TO_WHISKY_BPS = 1000;
 export declare const DEFAULT_BONUS_TO_JACKPOT_RATIO_BPS = 100;
 export declare const MIN_BET_LENGTH = 2;
-export declare const MAX_BET_LENGTH = 20;
+export declare const MAX_BET_LENGTH = 256;
 export declare const MIN_BET_WEIGHT = 1;
 export declare const MAX_BET_WEIGHT = 1000000;
 export declare const TOKEN_METADATA_PROGRAM_ID: PublicKey;

@@ -246,16 +246,14 @@ class WhiskyGamingClient {
         try {
             return {
                 user: userAddress || this.user,
-                nonce: 5,
-                gamesPlayed: 10,
+                nonce: new bn_js_1.default(5),
+                totalGames: new bn_js_1.default(10),
                 totalWagered: new bn_js_1.default(50000),
-                totalWon: new bn_js_1.default(55000),
-                totalGames: 10,
                 totalWinnings: new bn_js_1.default(55000),
                 netProfitLoss: new bn_js_1.default(5000),
                 lastGameAt: new bn_js_1.default(Date.now() / 1000),
-                winRate: 65.0,
-                avgBetSize: new bn_js_1.default(5000)
+                createdAt: new bn_js_1.default(Date.now() / 1000 - 86400),
+                isActive: true
             };
         }
         catch (error) {
