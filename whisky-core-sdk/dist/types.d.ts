@@ -1,4 +1,5 @@
 import { PublicKey } from '@solana/web3.js';
+import BN from 'bn.js';
 /**
  * ============================================================================
  * 🥃 WHISKY GAMING PROTOCOL - COMPREHENSIVE TYPE DEFINITIONS 🎮
@@ -103,6 +104,8 @@ export interface Game {
     user: PublicKey;
     /** Pool where the game is being played */
     pool: PublicKey;
+    /** Token mint used for the game */
+    tokenMint: PublicKey;
     /** Current game status */
     status: GameStatus;
     /** Wager amount in tokens */
@@ -225,6 +228,8 @@ export interface PlaceBetParams {
     metadata?: string;
     /** User's token account */
     userTokenAccount?: PublicKey;
+    /** Game creator address */
+    creator?: PublicKey;
 }
 export interface ClaimWinningsParams {
     /** Pool where winnings are */
@@ -342,6 +347,43 @@ export interface RiskMetrics {
     valueAtRisk: number;
     sharpeRatio: number;
     volatility: number;
+}
+export interface CalculatedPayout {
+    totalPayout: BN;
+    multiplierBps: number;
+    probability: number;
+    houseEdge: number;
+    expectedValue: number;
+}
+export interface FeeBreakdown {
+    creatorFee: BN;
+    whiskyFee: BN;
+    poolFee: BN;
+    jackpotFee: BN;
+    totalFees: BN;
+    netWager: BN;
+}
+export interface PoolLiquidity {
+    underlying: BN;
+    bonus: BN;
+    jackpot: BN;
+    total: BN;
+    utilizationRate: number;
+}
+export interface BetValidation {
+    isValid: boolean;
+    errors: string[];
+    totalWeight: number;
+    outcomes: number;
+    maxPayout: BN;
+    houseEdge: number;
+}
+export interface WagerValidation {
+    isValid: boolean;
+    errors: string[];
+    minWager: BN;
+    maxWager: BN;
+    availableLiquidity: BN;
 }
 export interface WhiskySDKConfig {
     /** Solana connection */

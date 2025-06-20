@@ -9,13 +9,13 @@
 // ================================
 
 /**
- * Base error class for Whisky Gaming Protocol
+ * Base Whisky SDK Error
  */
 export class WhiskyError extends Error {
-  public readonly code: string;
-  public readonly originalError?: Error;
+  public code: string;
+  public originalError?: Error;
 
-  constructor(message: string, code: string = 'WHISKY_ERROR', originalError?: Error) {
+  constructor(message: string, code: string = 'UNKNOWN_ERROR', originalError?: Error) {
     super(message);
     this.name = 'WhiskyError';
     this.code = code;
@@ -24,7 +24,7 @@ export class WhiskyError extends Error {
 }
 
 /**
- * Configuration related errors
+ * Configuration and Protocol Errors
  */
 export class WhiskyConfigError extends WhiskyError {
   constructor(message: string, originalError?: Error) {
@@ -47,7 +47,7 @@ export class WhiskyTransactionError extends WhiskyError {
 }
 
 /**
- * Pool related errors
+ * Pool-related Errors
  */
 export class WhiskyPoolError extends WhiskyError {
   constructor(message: string, originalError?: Error) {
@@ -67,7 +67,7 @@ export class WhiskyPlayerError extends WhiskyError {
 }
 
 /**
- * Game related errors
+ * Game-related Errors
  */
 export class WhiskyGameError extends WhiskyError {
   constructor(message: string, originalError?: Error) {

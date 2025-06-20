@@ -1,365 +1,455 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RETRY_DELAY = exports.MAX_RETRIES = exports.DEFAULT_COMMITMENT = exports.BASIS_POINTS_SCALE = exports.PROGRAM_ID = void 0;
-exports.deriveWhiskyStatePDA = deriveWhiskyStatePDA;
-exports.derivePoolPDA = derivePoolPDA;
-exports.deriveLpMintPDA = deriveLpMintPDA;
-exports.derivePlayerPDA = derivePlayerPDA;
-exports.deriveGamePDA = deriveGamePDA;
-exports.calculateLpTokens = calculateLpTokens;
-exports.calculateWithdrawalAmount = calculateWithdrawalAmount;
-exports.calculateExpectedReturn = calculateExpectedReturn;
-exports.calculateHouseEdge = calculateHouseEdge;
-exports.calculatePoolUtilization = calculatePoolUtilization;
-exports.calculateAPY = calculateAPY;
-exports.validateBet = validateBet;
-exports.validateWager = validateWager;
-exports.formatTokenAmount = formatTokenAmount;
-exports.formatPercentage = formatPercentage;
-exports.formatCurrency = formatCurrency;
-exports.bnToNumber = bnToNumber;
-exports.numberToBN = numberToBN;
-exports.generateClientSeed = generateClientSeed;
-exports.hashSeed = hashSeed;
-exports.getCurrentTimestamp = getCurrentTimestamp;
-exports.formatTimestamp = formatTimestamp;
-exports.getTimeDifference = getTimeDifference;
-exports.parseAnchorError = parseAnchorError;
-exports.retryOperation = retryOperation;
-exports.calculateWinRate = calculateWinRate;
-exports.calculateROI = calculateROI;
-exports.calculateSharpeRatio = calculateSharpeRatio;
-exports.isPublicKey = isPublicKey;
-exports.isBN = isBN;
+exports.retryWithBackoff = exports.sleep = exports.parseProgramError = exports.generateMetadata = exports.generateClientSeed = exports.accountExists = exports.safeGetAccountInfo = exports.formatMultiplier = exports.formatPercentage = exports.parseTokenAmount = exports.formatTokenAmount = exports.validateWager = exports.validateBet = exports.calculateFees = exports.calculateExpectedPayout = exports.calculateWithdrawAmount = exports.calculateLpTokens = exports.ubpsToDecimal = exports.percentToBps = exports.bpsToPercent = exports.isNativeSOL = exports.getUserLpTokenAccount = exports.getPoolTokenAccount = exports.getUserTokenAccount = exports.deriveGamePDA = exports.derivePlayerPDA = exports.derivePoolBonusUnderlyingPDA = exports.derivePoolBonusMintPDA = exports.derivePoolJackpotPDA = exports.derivePoolLpMintPDA = exports.derivePoolPDA = exports.deriveWhiskyStatePDA = void 0;
 const web3_js_1 = require("@solana/web3.js");
-const bn_js_1 = require("bn.js");
+const spl_token_1 = require("@solana/spl-token");
+const bn_js_1 = __importDefault(require("bn.js"));
+const constants_1 = require("./constants");
 /**
  * ============================================================================
  * 🥃 WHISKY GAMING PROTOCOL - UTILITY FUNCTIONS 🛠️
  * ============================================================================
  */
 // ================================
-// PDA DERIVATION UTILITIES
+// PDA DERIVATION FUNCTIONS
 // ================================
 /**
  * Derive the Whisky State PDA
  */
-function deriveWhiskyStatePDA(programId) {
-    return web3_js_1.PublicKey.findProgramAddressSync([Buffer.from('WHISKY_STATE')], programId);
+function deriveWhiskyStatePDA(programId = constants_1.WHISKY_PROGRAM_ID) {
+    return web3_js_1.PublicKey.findProgramAddressSync([Buffer.from(constants_1.WHISKY_STATE_SEED)], programId);
 }
+exports.deriveWhiskyStatePDA = deriveWhiskyStatePDA;
 /**
- * Derive Pool PDA
+ * Derive a Pool PDA
  */
-function derivePoolPDA(tokenMint, poolAuthority, programId) {
+function derivePoolPDA(tokenMint, authority, programId = constants_1.WHISKY_PROGRAM_ID) {
     return web3_js_1.PublicKey.findProgramAddressSync([
-        Buffer.from('POOL'),
+        Buffer.from(constants_1.POOL_SEED),
         tokenMint.toBuffer(),
-        poolAuthority.toBuffer(),
+        authority.toBuffer()
     ], programId);
 }
+exports.derivePoolPDA = derivePoolPDA;
 /**
- * Derive LP Mint PDA
+ * Derive Pool LP Mint PDA
  */
-function deriveLpMintPDA(tokenMint, poolAuthority, programId) {
+function derivePoolLpMintPDA(tokenMint, authority, programId = constants_1.WHISKY_PROGRAM_ID) {
     return web3_js_1.PublicKey.findProgramAddressSync([
-        Buffer.from('POOL_LP_MINT'),
+        Buffer.from(constants_1.POOL_LP_MINT_SEED),
         tokenMint.toBuffer(),
-        poolAuthority.toBuffer(),
+        authority.toBuffer()
     ], programId);
 }
+exports.derivePoolLpMintPDA = derivePoolLpMintPDA;
+/**
+ * Derive Pool Jackpot Token Account PDA
+ */
+function derivePoolJackpotPDA(pool, programId = constants_1.WHISKY_PROGRAM_ID) {
+    return web3_js_1.PublicKey.findProgramAddressSync([
+        Buffer.from(constants_1.POOL_JACKPOT_SEED),
+        pool.toBuffer()
+    ], programId);
+}
+exports.derivePoolJackpotPDA = derivePoolJackpotPDA;
+/**
+ * Derive Pool Bonus Mint PDA
+ */
+function derivePoolBonusMintPDA(pool, programId = constants_1.WHISKY_PROGRAM_ID) {
+    return web3_js_1.PublicKey.findProgramAddressSync([
+        Buffer.from(constants_1.POOL_BONUS_MINT_SEED),
+        pool.toBuffer()
+    ], programId);
+}
+exports.derivePoolBonusMintPDA = derivePoolBonusMintPDA;
+/**
+ * Derive Pool Bonus Underlying Token Account PDA
+ */
+function derivePoolBonusUnderlyingPDA(pool, programId = constants_1.WHISKY_PROGRAM_ID) {
+    return web3_js_1.PublicKey.findProgramAddressSync([
+        Buffer.from(constants_1.POOL_BONUS_UNDERLYING_TA_SEED),
+        pool.toBuffer()
+    ], programId);
+}
+exports.derivePoolBonusUnderlyingPDA = derivePoolBonusUnderlyingPDA;
 /**
  * Derive Player PDA
  */
-function derivePlayerPDA(user, programId) {
-    return web3_js_1.PublicKey.findProgramAddressSync([Buffer.from('PLAYER'), user.toBuffer()], programId);
+function derivePlayerPDA(user, programId = constants_1.WHISKY_PROGRAM_ID) {
+    return web3_js_1.PublicKey.findProgramAddressSync([
+        Buffer.from(constants_1.PLAYER_SEED),
+        user.toBuffer()
+    ], programId);
 }
+exports.derivePlayerPDA = derivePlayerPDA;
 /**
  * Derive Game PDA
  */
-function deriveGamePDA(user, programId) {
-    return web3_js_1.PublicKey.findProgramAddressSync([Buffer.from('GAME'), user.toBuffer()], programId);
+function deriveGamePDA(user, programId = constants_1.WHISKY_PROGRAM_ID) {
+    return web3_js_1.PublicKey.findProgramAddressSync([
+        Buffer.from(constants_1.GAME_SEED),
+        user.toBuffer()
+    ], programId);
 }
+exports.deriveGamePDA = deriveGamePDA;
 // ================================
-// CALCULATION UTILITIES
+// TOKEN ACCOUNT HELPERS
 // ================================
 /**
- * Calculate LP tokens for deposit
+ * Get Associated Token Address for a user and mint
+ */
+function getUserTokenAccount(user, mint) {
+    return (0, spl_token_1.getAssociatedTokenAddressSync)(mint, user);
+}
+exports.getUserTokenAccount = getUserTokenAccount;
+/**
+ * Get Associated Token Address for a pool and mint (PDA as owner)
+ */
+function getPoolTokenAccount(pool, mint) {
+    return (0, spl_token_1.getAssociatedTokenAddressSync)(mint, pool, true);
+}
+exports.getPoolTokenAccount = getPoolTokenAccount;
+/**
+ * Get User's LP Token Account for a specific pool
+ */
+function getUserLpTokenAccount(user, tokenMint, authority) {
+    const [lpMint] = derivePoolLpMintPDA(tokenMint, authority);
+    return (0, spl_token_1.getAssociatedTokenAddressSync)(lpMint, user);
+}
+exports.getUserLpTokenAccount = getUserLpTokenAccount;
+/**
+ * Check if token is native SOL
+ */
+function isNativeSOL(mint) {
+    return mint.equals(spl_token_1.NATIVE_MINT);
+}
+exports.isNativeSOL = isNativeSOL;
+// ================================
+// MATHEMATICAL CALCULATIONS
+// ================================
+/**
+ * Convert basis points to decimal percentage
+ */
+function bpsToPercent(bps) {
+    return bps / constants_1.BPS_DIVISOR;
+}
+exports.bpsToPercent = bpsToPercent;
+/**
+ * Convert percentage to basis points
+ */
+function percentToBps(percent) {
+    return Math.round(percent * constants_1.BPS_DIVISOR);
+}
+exports.percentToBps = percentToBps;
+/**
+ * Convert micro basis points to decimal
+ */
+function ubpsToDecimal(ubps) {
+    return ubps / constants_1.UBPS_DIVISOR;
+}
+exports.ubpsToDecimal = ubpsToDecimal;
+/**
+ * Calculate LP tokens to mint for a deposit
  */
 function calculateLpTokens(depositAmount, poolLiquidity, lpSupply) {
-    if (lpSupply === 0) {
-        return depositAmount; // First deposit gets 1:1 ratio
+    const deposit = new bn_js_1.default(depositAmount);
+    const liquidity = new bn_js_1.default(poolLiquidity);
+    const supply = new bn_js_1.default(lpSupply);
+    // If no supply exists, return deposit amount
+    if (supply.isZero()) {
+        return deposit;
     }
-    return (depositAmount * lpSupply) / poolLiquidity;
+    // LP tokens = (deposit * lpSupply) / poolLiquidity
+    return deposit.mul(supply).div(liquidity);
 }
+exports.calculateLpTokens = calculateLpTokens;
 /**
- * Calculate withdrawal amount from LP tokens
+ * Calculate tokens to withdraw for LP tokens
  */
-function calculateWithdrawalAmount(lpTokens, poolLiquidity, lpSupply) {
-    if (lpSupply === 0)
-        return 0;
-    return (lpTokens * poolLiquidity) / lpSupply;
-}
-/**
- * Calculate expected return from bet
- */
-function calculateExpectedReturn(bet, wager) {
-    const totalWeight = bet.reduce((sum, weight) => sum + weight, 0);
-    if (totalWeight === 0)
-        return 0;
-    // Expected value calculation
-    return bet.reduce((expectedValue, weight, index) => {
-        const probability = weight / totalWeight;
-        const payout = wager * (totalWeight / weight);
-        return expectedValue + (probability * payout);
-    }, 0);
-}
-/**
- * Calculate house edge for a pool
- */
-function calculateHouseEdge(totalVolume, totalPayouts, feesCollected) {
-    if (totalVolume === 0)
-        return 0;
-    return ((totalVolume - totalPayouts - feesCollected) / totalVolume) * 100;
-}
-/**
- * Calculate pool utilization
- */
-function calculatePoolUtilization(activeWagers, totalLiquidity) {
-    if (totalLiquidity === 0)
-        return 0;
-    return (activeWagers / totalLiquidity) * 100;
-}
-/**
- * Calculate APY for LP providers
- */
-function calculateAPY(feesEarned24h, totalLiquidity) {
-    if (totalLiquidity === 0)
-        return 0;
-    const dailyRate = feesEarned24h / totalLiquidity;
-    return ((Math.pow(1 + dailyRate, 365) - 1) * 100);
-}
-// ================================
-// VALIDATION UTILITIES
-// ================================
-/**
- * Validate bet array
- */
-function validateBet(bet) {
-    if (!bet || bet.length === 0) {
-        return { valid: false, error: 'Bet array cannot be empty' };
+function calculateWithdrawAmount(lpTokens, poolLiquidity, lpSupply) {
+    const lp = new bn_js_1.default(lpTokens);
+    const liquidity = new bn_js_1.default(poolLiquidity);
+    const supply = new bn_js_1.default(lpSupply);
+    if (supply.isZero()) {
+        return new bn_js_1.default(0);
     }
-    if (bet.some(weight => weight < 0)) {
-        return { valid: false, error: 'Bet weights cannot be negative' };
-    }
+    // Withdraw amount = (lpTokens * poolLiquidity) / lpSupply
+    return lp.mul(liquidity).div(supply);
+}
+exports.calculateWithdrawAmount = calculateWithdrawAmount;
+/**
+ * Calculate expected payout for a bet
+ */
+function calculateExpectedPayout(bet, wager, houseEdgeBps = 200) {
+    const wagerBN = new bn_js_1.default(wager);
     const totalWeight = bet.reduce((sum, weight) => sum + weight, 0);
     if (totalWeight === 0) {
-        return { valid: false, error: 'Total bet weight cannot be zero' };
+        throw new Error('Total bet weight cannot be zero');
     }
-    return { valid: true };
+    // Calculate individual outcome probabilities and payouts
+    const outcomes = bet.map(weight => {
+        const probability = weight / totalWeight;
+        const rawMultiplier = totalWeight / weight;
+        const adjustedMultiplier = rawMultiplier * (1 - bpsToPercent(houseEdgeBps));
+        const payout = wagerBN.mul(new bn_js_1.default(Math.floor(adjustedMultiplier * constants_1.BPS_DIVISOR))).div(new bn_js_1.default(constants_1.BPS_DIVISOR));
+        return {
+            probability,
+            multiplier: adjustedMultiplier,
+            payout,
+            weight
+        };
+    });
+    // Find maximum payout (for the outcome with highest multiplier)
+    const maxPayout = outcomes.reduce((max, outcome) => outcome.payout.gt(max) ? outcome.payout : max, new bn_js_1.default(0));
+    // Calculate weighted average multiplier
+    const weightedMultiplier = outcomes.reduce((sum, outcome) => sum + (outcome.multiplier * outcome.probability), 0);
+    return {
+        totalPayout: maxPayout,
+        multiplierBps: Math.floor(weightedMultiplier * constants_1.BPS_DIVISOR),
+        probability: 1 / outcomes.length, // Average probability
+        houseEdge: bpsToPercent(houseEdgeBps),
+        expectedValue: weightedMultiplier
+    };
 }
+exports.calculateExpectedPayout = calculateExpectedPayout;
 /**
- * Validate wager amount
+ * Calculate fee breakdown for a wager
  */
-function validateWager(amount, minWager, maxWager, poolLiquidity) {
-    if (amount <= 0) {
-        return { valid: false, error: 'Wager amount must be positive' };
-    }
-    if (amount < minWager) {
-        return { valid: false, error: `Wager below minimum: ${minWager}` };
-    }
-    if (amount > maxWager) {
-        return { valid: false, error: `Wager above maximum: ${maxWager}` };
-    }
-    // Check if pool has enough liquidity for max potential payout
-    const maxPayout = amount * 10; // Conservative estimate
-    if (maxPayout > poolLiquidity * 0.5) {
-        return { valid: false, error: 'Insufficient pool liquidity for this wager' };
-    }
-    return { valid: true };
+function calculateFees(wager, creatorFeeBps = 0, whiskyFeeBps = 200, poolFeeBps = 100, jackpotFeeBps = 50) {
+    const wagerBN = new bn_js_1.default(wager);
+    const creatorFee = wagerBN.mul(new bn_js_1.default(creatorFeeBps)).div(new bn_js_1.default(constants_1.BPS_DIVISOR));
+    const whiskyFee = wagerBN.mul(new bn_js_1.default(whiskyFeeBps)).div(new bn_js_1.default(constants_1.BPS_DIVISOR));
+    const poolFee = wagerBN.mul(new bn_js_1.default(poolFeeBps)).div(new bn_js_1.default(constants_1.BPS_DIVISOR));
+    const jackpotFee = wagerBN.mul(new bn_js_1.default(jackpotFeeBps)).div(new bn_js_1.default(constants_1.BPS_DIVISOR));
+    const totalFees = creatorFee.add(whiskyFee).add(poolFee).add(jackpotFee);
+    const netWager = wagerBN.sub(totalFees);
+    return {
+        creatorFee,
+        whiskyFee,
+        poolFee,
+        jackpotFee,
+        totalFees,
+        netWager
+    };
 }
+exports.calculateFees = calculateFees;
 // ================================
-// FORMATTING UTILITIES
+// VALIDATION FUNCTIONS
 // ================================
 /**
- * Format number with proper decimals
+ * Validate a bet configuration
+ */
+function validateBet(bet) {
+    const errors = [];
+    let isValid = true;
+    // Check bet length
+    if (bet.length < constants_1.MIN_BET_LENGTH) {
+        errors.push(`Bet must have at least ${constants_1.MIN_BET_LENGTH} outcomes`);
+        isValid = false;
+    }
+    if (bet.length > constants_1.MAX_BET_LENGTH) {
+        errors.push(`Bet cannot have more than ${constants_1.MAX_BET_LENGTH} outcomes`);
+        isValid = false;
+    }
+    // Check individual weights
+    for (let i = 0; i < bet.length; i++) {
+        if (bet[i] < constants_1.MIN_BET_WEIGHT) {
+            errors.push(`Bet weight ${i} must be at least ${constants_1.MIN_BET_WEIGHT}`);
+            isValid = false;
+        }
+        if (bet[i] > constants_1.MAX_BET_WEIGHT) {
+            errors.push(`Bet weight ${i} cannot exceed ${constants_1.MAX_BET_WEIGHT}`);
+            isValid = false;
+        }
+    }
+    const totalWeight = bet.reduce((sum, weight) => sum + weight, 0);
+    // Calculate max payout and house edge
+    const maxMultiplier = totalWeight / Math.min(...bet);
+    const maxPayout = new bn_js_1.default(Math.floor(maxMultiplier * constants_1.BPS_DIVISOR));
+    const houseEdge = 0; // This would be set by pool configuration
+    return {
+        isValid,
+        errors,
+        totalWeight,
+        outcomes: bet.length,
+        maxPayout,
+        houseEdge
+    };
+}
+exports.validateBet = validateBet;
+/**
+ * Validate a wager amount
+ */
+function validateWager(wager, minWager, maxWager, availableLiquidity) {
+    const wagerBN = new bn_js_1.default(wager);
+    const minWagerBN = new bn_js_1.default(minWager);
+    const maxWagerBN = new bn_js_1.default(maxWager);
+    const liquidityBN = new bn_js_1.default(availableLiquidity);
+    const errors = [];
+    let isValid = true;
+    if (wagerBN.lt(minWagerBN)) {
+        errors.push(`Wager must be at least ${minWagerBN.toString()}`);
+        isValid = false;
+    }
+    if (wagerBN.gt(maxWagerBN)) {
+        errors.push(`Wager cannot exceed ${maxWagerBN.toString()}`);
+        isValid = false;
+    }
+    if (wagerBN.gt(liquidityBN)) {
+        errors.push(`Insufficient liquidity. Available: ${liquidityBN.toString()}`);
+        isValid = false;
+    }
+    return {
+        isValid,
+        errors,
+        minWager: minWagerBN,
+        maxWager: maxWagerBN,
+        availableLiquidity: liquidityBN
+    };
+}
+exports.validateWager = validateWager;
+// ================================
+// FORMATTING FUNCTIONS
+// ================================
+/**
+ * Format a BN amount with decimals
  */
 function formatTokenAmount(amount, decimals = 9) {
-    return (amount / Math.pow(10, decimals)).toFixed(decimals);
+    const divisor = new bn_js_1.default(10).pow(new bn_js_1.default(decimals));
+    const quotient = amount.div(divisor);
+    const remainder = amount.mod(divisor);
+    if (remainder.isZero()) {
+        return quotient.toString();
+    }
+    const remainderStr = remainder.toString().padStart(decimals, '0');
+    const trimmedRemainder = remainderStr.replace(/0+$/, '');
+    return trimmedRemainder ? `${quotient}.${trimmedRemainder}` : quotient.toString();
 }
+exports.formatTokenAmount = formatTokenAmount;
 /**
- * Format percentage
+ * Parse a token amount string to BN
+ */
+function parseTokenAmount(amount, decimals = 9) {
+    const [whole, fractional = ''] = amount.split('.');
+    const wholeBN = new bn_js_1.default(whole || '0');
+    if (!fractional) {
+        return wholeBN.mul(new bn_js_1.default(10).pow(new bn_js_1.default(decimals)));
+    }
+    const fractionalPadded = fractional.padEnd(decimals, '0').slice(0, decimals);
+    const fractionalBN = new bn_js_1.default(fractionalPadded);
+    return wholeBN.mul(new bn_js_1.default(10).pow(new bn_js_1.default(decimals))).add(fractionalBN);
+}
+exports.parseTokenAmount = parseTokenAmount;
+/**
+ * Format percentage with specified decimal places
  */
 function formatPercentage(value, decimals = 2) {
-    return `${value.toFixed(decimals)}%`;
+    return `${(value * 100).toFixed(decimals)}%`;
 }
+exports.formatPercentage = formatPercentage;
 /**
- * Format currency
+ * Format multiplier (e.g., 2.5x)
  */
-function formatCurrency(amount, currency = 'SOL') {
-    return `${amount.toLocaleString()} ${currency}`;
+function formatMultiplier(multiplierBps) {
+    const multiplier = multiplierBps / constants_1.BPS_DIVISOR;
+    return `${multiplier.toFixed(2)}x`;
 }
-/**
- * Convert BN to number
- */
-function bnToNumber(bn, decimals = 9) {
-    return bn.toNumber() / Math.pow(10, decimals);
-}
-/**
- * Convert number to BN
- */
-function numberToBN(num, decimals = 9) {
-    return new bn_js_1.BN(Math.floor(num * Math.pow(10, decimals)));
-}
+exports.formatMultiplier = formatMultiplier;
 // ================================
-// CRYPTO UTILITIES
+// ACCOUNT FETCHING HELPERS
 // ================================
 /**
- * Generate random client seed
+ * Safely fetch account info
+ */
+async function safeGetAccountInfo(connection, address) {
+    try {
+        return await connection.getAccountInfo(address);
+    }
+    catch (error) {
+        console.warn(`Failed to fetch account ${address.toString()}:`, error);
+        return null;
+    }
+}
+exports.safeGetAccountInfo = safeGetAccountInfo;
+/**
+ * Check if account exists
+ */
+async function accountExists(connection, address) {
+    const accountInfo = await safeGetAccountInfo(connection, address);
+    return accountInfo !== null;
+}
+exports.accountExists = accountExists;
+// ================================
+// RANDOM GENERATION HELPERS
+// ================================
+/**
+ * Generate a random client seed
  */
 function generateClientSeed() {
-    return Math.random().toString(36).substring(2, 15) +
-        Math.random().toString(36).substring(2, 15);
-}
-/**
- * Hash function for deterministic randomness
- */
-function hashSeed(seed) {
-    let hash = 0;
-    if (seed.length === 0)
-        return hash;
-    for (let i = 0; i < seed.length; i++) {
-        const char = seed.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convert to 32-bit integer
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 32; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    return Math.abs(hash);
+    return result;
 }
-// ================================
-// TIME UTILITIES
-// ================================
+exports.generateClientSeed = generateClientSeed;
 /**
- * Get current Unix timestamp
+ * Generate random metadata
  */
-function getCurrentTimestamp() {
-    return Math.floor(Date.now() / 1000);
+function generateMetadata(prefix = 'Game') {
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 10000);
+    return `${prefix}_${timestamp}_${random}`;
 }
-/**
- * Format timestamp to readable date
- */
-function formatTimestamp(timestamp) {
-    return new Date(timestamp * 1000).toLocaleString();
-}
-/**
- * Calculate time difference in human readable format
- */
-function getTimeDifference(timestamp) {
-    const now = getCurrentTimestamp();
-    const diff = now - timestamp;
-    if (diff < 60)
-        return `${diff} seconds ago`;
-    if (diff < 3600)
-        return `${Math.floor(diff / 60)} minutes ago`;
-    if (diff < 86400)
-        return `${Math.floor(diff / 3600)} hours ago`;
-    return `${Math.floor(diff / 86400)} days ago`;
-}
+exports.generateMetadata = generateMetadata;
 // ================================
-// ERROR HANDLING UTILITIES
+// ERROR HANDLING HELPERS
 // ================================
 /**
- * Parse Anchor error messages
+ * Parse program error from transaction error
  */
-function parseAnchorError(error) {
+function parseProgramError(error) {
+    if (error?.error?.errorCode) {
+        return {
+            code: error.error.errorCode.code,
+            message: error.error.errorCode.message || 'Unknown program error'
+        };
+    }
     if (error?.message) {
-        // Try to extract meaningful error from Anchor
-        const match = error.message.match(/Error Message: (.*?)\.?$/);
-        if (match)
-            return match[1];
-        // Look for specific error codes
-        if (error.message.includes('0x1770'))
-            return 'Insufficient funds';
-        if (error.message.includes('0x1771'))
-            return 'Invalid bet configuration';
-        if (error.message.includes('0x1772'))
-            return 'Pool not found or inactive';
-        if (error.message.includes('0x1773'))
-            return 'Player not initialized';
-        if (error.message.includes('0x1774'))
-            return 'Game in invalid state';
-        return error.message;
+        return { message: error.message };
     }
-    return 'Unknown error occurred';
+    return { message: 'Unknown error occurred' };
 }
+exports.parseProgramError = parseProgramError;
 /**
- * Retry mechanism for failed transactions
+ * Sleep for specified milliseconds
  */
-async function retryOperation(operation, maxRetries = 3, delay = 1000) {
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+exports.sleep = sleep;
+/**
+ * Retry async operation with exponential backoff
+ */
+async function retryWithBackoff(operation, maxRetries = 3, baseDelay = 1000) {
     let lastError;
-    for (let i = 0; i < maxRetries; i++) {
+    for (let i = 0; i <= maxRetries; i++) {
         try {
             return await operation();
         }
         catch (error) {
             lastError = error;
-            if (i < maxRetries - 1) {
-                await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+            if (i === maxRetries) {
+                throw lastError;
             }
+            const delay = baseDelay * Math.pow(2, i);
+            await sleep(delay);
         }
     }
     throw lastError;
 }
-// ================================
-// STATISTICS UTILITIES
-// ================================
-/**
- * Calculate win rate
- */
-function calculateWinRate(wins, totalGames) {
-    if (totalGames === 0)
-        return 0;
-    return (wins / totalGames) * 100;
-}
-/**
- * Calculate ROI (Return on Investment)
- */
-function calculateROI(totalWagered, netProfitLoss) {
-    if (totalWagered === 0)
-        return 0;
-    return (netProfitLoss / totalWagered) * 100;
-}
-/**
- * Calculate Sharpe ratio for risk assessment
- */
-function calculateSharpeRatio(returns, riskFreeRate = 0) {
-    if (returns.length === 0)
-        return 0;
-    const avgReturn = returns.reduce((sum, ret) => sum + ret, 0) / returns.length;
-    const variance = returns.reduce((sum, ret) => sum + Math.pow(ret - avgReturn, 2), 0) / returns.length;
-    const standardDeviation = Math.sqrt(variance);
-    if (standardDeviation === 0)
-        return 0;
-    return (avgReturn - riskFreeRate) / standardDeviation;
-}
-// ================================
-// CONSTANTS
-// ================================
-exports.PROGRAM_ID = 'Bk1qUqYaEfCyKWeke3VKDjmb2rtFM61QyPmroSFmv7uw';
-exports.BASIS_POINTS_SCALE = 10000;
-exports.DEFAULT_COMMITMENT = 'confirmed';
-exports.MAX_RETRIES = 3;
-exports.RETRY_DELAY = 1000;
-// ================================
-// TYPE GUARDS
-// ================================
-/**
- * Check if value is a valid PublicKey
- */
-function isPublicKey(value) {
-    return value instanceof web3_js_1.PublicKey;
-}
-/**
- * Check if value is a valid BN
- */
-function isBN(value) {
-    return value instanceof bn_js_1.BN;
-}
+exports.retryWithBackoff = retryWithBackoff;

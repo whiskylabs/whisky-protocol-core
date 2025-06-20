@@ -5,23 +5,15 @@
  * ============================================================================
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ERROR_MESSAGES = exports.WhiskyNetworkError = exports.WhiskyValidationError = exports.WhiskyGameError = exports.WhiskyPlayerError = exports.WhiskyPoolError = exports.WhiskyTransactionError = exports.WhiskyConfigError = exports.WhiskyError = void 0;
-exports.parseError = parseError;
-exports.handleAsyncOperation = handleAsyncOperation;
-exports.validateRequired = validateRequired;
-exports.validateRange = validateRange;
-exports.validatePositive = validatePositive;
-exports.validateArrayLength = validateArrayLength;
-exports.retryWithBackoff = retryWithBackoff;
-exports.withTimeout = withTimeout;
+exports.withTimeout = exports.retryWithBackoff = exports.validateArrayLength = exports.validatePositive = exports.validateRange = exports.validateRequired = exports.handleAsyncOperation = exports.parseError = exports.ERROR_MESSAGES = exports.WhiskyNetworkError = exports.WhiskyValidationError = exports.WhiskyGameError = exports.WhiskyPlayerError = exports.WhiskyPoolError = exports.WhiskyTransactionError = exports.WhiskyConfigError = exports.WhiskyError = void 0;
 // ================================
 // CUSTOM ERROR CLASSES
 // ================================
 /**
- * Base error class for Whisky Gaming Protocol
+ * Base Whisky SDK Error
  */
 class WhiskyError extends Error {
-    constructor(message, code = 'WHISKY_ERROR', originalError) {
+    constructor(message, code = 'UNKNOWN_ERROR', originalError) {
         super(message);
         this.name = 'WhiskyError';
         this.code = code;
@@ -30,7 +22,7 @@ class WhiskyError extends Error {
 }
 exports.WhiskyError = WhiskyError;
 /**
- * Configuration related errors
+ * Configuration and Protocol Errors
  */
 class WhiskyConfigError extends WhiskyError {
     constructor(message, originalError) {
@@ -51,7 +43,7 @@ class WhiskyTransactionError extends WhiskyError {
 }
 exports.WhiskyTransactionError = WhiskyTransactionError;
 /**
- * Pool related errors
+ * Pool-related Errors
  */
 class WhiskyPoolError extends WhiskyError {
     constructor(message, originalError) {
@@ -71,7 +63,7 @@ class WhiskyPlayerError extends WhiskyError {
 }
 exports.WhiskyPlayerError = WhiskyPlayerError;
 /**
- * Game related errors
+ * Game-related Errors
  */
 class WhiskyGameError extends WhiskyError {
     constructor(message, originalError) {
@@ -200,6 +192,7 @@ function parseError(error) {
     // Default to generic error
     return new WhiskyError(message, 'UNKNOWN_ERROR', originalError);
 }
+exports.parseError = parseError;
 /**
  * Handle async operations with proper error parsing
  */
@@ -215,6 +208,7 @@ async function handleAsyncOperation(operation, context) {
         throw parsedError;
     }
 }
+exports.handleAsyncOperation = handleAsyncOperation;
 /**
  * Validate required parameters
  */
@@ -224,6 +218,7 @@ function validateRequired(value, fieldName) {
     }
     return value;
 }
+exports.validateRequired = validateRequired;
 /**
  * Validate number range
  */
@@ -233,6 +228,7 @@ function validateRange(value, min, max, fieldName) {
     }
     return value;
 }
+exports.validateRange = validateRange;
 /**
  * Validate positive number
  */
@@ -242,6 +238,7 @@ function validatePositive(value, fieldName) {
     }
     return value;
 }
+exports.validatePositive = validatePositive;
 /**
  * Validate array length
  */
@@ -251,6 +248,7 @@ function validateArrayLength(array, minLength, maxLength, fieldName) {
     }
     return array;
 }
+exports.validateArrayLength = validateArrayLength;
 // ================================
 // ERROR RECOVERY
 // ================================
@@ -280,6 +278,7 @@ async function retryWithBackoff(operation, maxRetries = 3, baseDelay = 1000, max
     }
     throw new WhiskyError(`Operation failed after ${maxRetries} attempts: ${lastError.message}`, 'RETRY_EXHAUSTED', lastError);
 }
+exports.retryWithBackoff = retryWithBackoff;
 /**
  * Timeout wrapper for operations
  */
@@ -291,3 +290,4 @@ async function withTimeout(operation, timeoutMs, timeoutMessage = 'Operation tim
     });
     return Promise.race([operation, timeoutPromise]);
 }
+exports.withTimeout = withTimeout;
