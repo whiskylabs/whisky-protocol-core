@@ -37,7 +37,7 @@ export const DEFAULT_BONUS_TO_JACKPOT_RATIO_BPS = 100; // 1%
 
 // Game Configuration
 export const MIN_BET_LENGTH = 2;
-export const MAX_BET_LENGTH = 20;
+export const MAX_BET_LENGTH = 256;
 export const MIN_BET_WEIGHT = 1;
 export const MAX_BET_WEIGHT = 1000000;
 

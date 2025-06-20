@@ -378,8 +378,9 @@ export function validateBet(bet: number[]): BetValidation {
   const totalWeight = bet.reduce((sum, weight) => sum + weight, 0);
   
   // Calculate max payout and house edge
-  const maxMultiplier = totalWeight / Math.min(...bet);
-  const maxPayout = new BN(Math.floor(maxMultiplier * BPS_DIVISOR));
+  const minWeight = Math.min(...bet);
+  const maxMultiplier = minWeight > 0 ? totalWeight / minWeight : 0;
+  const maxPayout = new BN(Math.floor(Math.max(0, maxMultiplier * BPS_DIVISOR)));
   const houseEdge = 0; // This would be set by pool configuration
 
   return {

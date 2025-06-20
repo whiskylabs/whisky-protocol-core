@@ -346,16 +346,14 @@ export class WhiskyGamingClient {
     try {
       return {
         user: userAddress || this.user,
-        nonce: 5,
-        gamesPlayed: 10,
+        nonce: new BN(5),
+        totalGames: new BN(10),
         totalWagered: new BN(50000),
-        totalWon: new BN(55000),
-        totalGames: 10,
         totalWinnings: new BN(55000),
         netProfitLoss: new BN(5000),
         lastGameAt: new BN(Date.now() / 1000),
-        winRate: 65.0,
-        avgBetSize: new BN(5000)
+        createdAt: new BN(Date.now() / 1000 - 86400),
+        isActive: true
       } as unknown as Player;
     } catch (error) {
       throw new WhiskyGameError(
