@@ -3,7 +3,7 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-whisky-core = "Bk1qUqYaEfCyKWeke3VKDjmb2rtFM61QyPmroSFmv7uw"
+whisky-core = "6R7S7r6KzU1A5YACXCaKuF6GcEcv5ZdXU4hh8vPozcw6"
 
 [registry]
 url = "https://api.apr.dev"
