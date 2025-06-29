@@ -7,7 +7,7 @@ use anchor_spl::{
 use mpl_token_metadata::types::{DataV2, TokenStandard};
 use std::str::FromStr;
 
-declare_id!("6R7S7r6KzU1A5YACXCaKuF6GcEcv5ZdXU4hh8vPozcw6");
+declare_id!("HBEQTKVQE2BvvVAN6b21srMXcYchHXQFy7kaQmgyoLdb");
 
 pub mod constants;
 pub mod errors;
